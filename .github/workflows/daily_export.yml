@@ -2,7 +2,7 @@ name: Daily Export to S3
 
 on:
   schedule:
-    # # Run daily at 10:00 AM UTC (adjust cron for your timezone, e.g. 15 10 * * * for 10 AM EST)
+    # # # Runs daily at 1:20 PM CST (19:20 UTC)
     - cron: '20 19 * * *'
 
 env:
