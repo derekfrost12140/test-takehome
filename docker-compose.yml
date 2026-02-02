@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    environment:
+      - CLICKHOUSE_DB=default
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=test
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./exporter_user.xml:/etc/clickhouse-server/users.d/exporter_user.xml
+      - ./named_collections.xml:/etc/clickhouse-server/config.d/named_collections.xml
+

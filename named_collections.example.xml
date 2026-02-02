@@ -1,0 +1,9 @@
+<clickhouse>
+    <named_collections>
+        <aws_production_s3>
+            <url>https://your-bucket.s3.us-east-1.amazonaws.com/your-prefix/</url>
+            <access_key_id>YOUR_AWS_ACCESS_KEY_ID</access_key_id>
+            <secret_access_key>YOUR_AWS_SECRET_ACCESS_KEY</secret_access_key>
+        </aws_production_s3>
+    </named_collections>
+</clickhouse>

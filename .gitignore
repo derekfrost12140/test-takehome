@@ -1,0 +1,42 @@
+# Secrets and environment
+.secrets
+.env
+named_collections.xml
+.env.*
+!.env.example
+*.env
+!.env.example
+
+# Local / cache data
+localstack_data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.eggs/
+*.egg-info/
+*.egg
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ClickHouse local (if used as binary or data)
+clickhouse
+
+# Build / dist
+dist/
+build/
+*.log
