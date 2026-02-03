@@ -46,14 +46,14 @@ echo "============================================="
 
 # Build the query (single line for reliable execution with clickhouse-client)
 # Use default.conversations explicitly; s3() uses key=value without spaces per ClickHouse docs
-QUERY="INSERT INTO FUNCTION s3(${NAMED_COLLECTION}, filename='${FILENAME}', format='CSVWithNames') SELECT agent_id, toDate(call_start) AS report_date, count() AS total_calls, round(avg(call_duration_sec), 2) AS avg_call_duration_sec, round(quantile(0.9)(call_duration_sec), 2) AS p90_call_duration_sec FROM default.conversations WHERE customer_id = '${CUSTOMER_ID}' AND toDate(call_start) = toDate('${EXPORT_DATE}') GROUP BY agent_id, toDate(call_start) ORDER BY agent_id"
+QUERY="INSERT INTO FUNCTION s3('${S3_URL}', '${S3_KEY}', '${S3_ACCESS}' , 'CSV') SELECT agent_id, toDate(call_start) AS report_date, count() AS total_calls, round(avg(call_duration_sec), 2) AS avg_call_duration_sec, round(quantile(0.9)(call_duration_sec), 2) AS p90_call_duration_sec FROM cresta.conversations WHERE customer_id = '${CUSTOMER_ID}' AND toDate(call_start) = toDate('${EXPORT_DATE}') GROUP BY agent_id, toDate(call_start) ORDER BY agent_id"
 
 # Log the query (pretty-printed for readability)
 echo "============================================="
 echo "🔍 INSERT + SELECT QUERY TO BE EXECUTED"
 echo "---------------------------------------------"
 echo "INSERT INTO FUNCTION s3('${S3_URL}', '${S3_KEY}', '${S3_ACCESS}' , 'CSV')"
-echo "SELECT agent_id, toDate(call_start) AS report_date, count() AS total_calls, round(avg(call_duration_sec), 2) AS avg_call_duration_sec, round(quantile(0.9)(call_duration_sec), 2) AS p90_call_duration_sec FROM default.conversations WHERE customer_id = '${CUSTOMER_ID}' AND toDate(call_start) = toDate('${EXPORT_DATE}') GROUP BY agent_id, toDate(call_start) ORDER BY agent_id"
+echo "SELECT agent_id, toDate(call_start) AS report_date, count() AS total_calls, round(avg(call_duration_sec), 2) AS avg_call_duration_sec, round(quantile(0.9)(call_duration_sec), 2) AS p90_call_duration_sec FROM cresta.conversations WHERE customer_id = '${CUSTOMER_ID}' AND toDate(call_start) = toDate('${EXPORT_DATE}') GROUP BY agent_id, toDate(call_start) ORDER BY agent_id"
 echo "---------------------------------------------"
 echo "============================================="
 
