@@ -3,24 +3,23 @@ name: Export Customer Data to S3
 on:
   workflow_dispatch:
     inputs:
-        customer_id:
-          description: 'Customer ID to export'
-          required: true
-          type: string
-        export_date:
-          description: 'Export date (YYYY-MM-DD). Omit to use yesterday.'
-          required: false
-          type: string
-        environment:
-          description: 'Environment to run against'
-          required: true
-          default: 'production'
-          type: choice
-          options:
-            - production
-            - staging
+      customer_id:
+        description: 'Customer ID to export'
+        required: true
+        type: string
+      export_date:
+        description: 'Export date (YYYY-MM-DD). Omit to use yesterday.'
+        required: false
+        type: string
+      environment:
+        description: 'Environment to run against'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
-  # Optional: trigger via repository dispatch (for API calls)
   repository_dispatch:
     types: [export-customer-data]
 
@@ -49,6 +48,22 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
           sudo apt-get update
           sudo apt-get install -y clickhouse-client
+
+      - name: Set customer ID and export date from inputs
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch'
+        run: |
+          if [ -n "${{ github.event.inputs.customer_id }}" ]; then
+            echo "CUSTOMER_ID=${{ github.event.inputs.customer_id }}" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ github.event.inputs.export_date }}" ]; then
+            echo "EXPORT_DATE=${{ github.event.inputs.export_date }}" >> $GITHUB_ENV
+          fi
+          if [ "${{ github.event_name }}" == "repository_dispatch" ] && [ -n "${{ github.event.client_payload.customer_id }}" ]; then
+            echo "CUSTOMER_ID=${{ github.event.client_payload.customer_id }}" >> $GITHUB_ENV
+          fi
+          if [ "${{ github.event_name }}" == "repository_dispatch" ] && [ -n "${{ github.event.client_payload.export_date }}" ]; then
+            echo "EXPORT_DATE=${{ github.event.client_payload.export_date }}" >> $GITHUB_ENV
+          fi
 
       - name: Validate customer ID
         run: |
