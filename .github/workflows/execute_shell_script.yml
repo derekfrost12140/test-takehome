@@ -1,1 +1,93 @@
 
+name: Export Customer Data to S3 hello
+
+on:
+  workflow_dispatch:
+    inputs:
+      customer_id:
+        description: 'Customer ID to export'
+        required: true
+        type: string
+      export_date:
+        description: 'Export date (YYYY-MM-DD). Omit to use yesterday.'
+        required: false
+        type: string
+      environment:
+        description: 'Environment to run against'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+  # Optional: trigger via repository dispatch (for API calls)
+  repository_dispatch:
+    types: [export-customer-data]
+
+env:
+  CLICKHOUSE_HOST: ${{ secrets.CLICKHOUSE_HOST }}
+  CLICKHOUSE_PORT: ${{ secrets.CLICKHOUSE_PORT }}
+  CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
+  CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install ClickHouse client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+          curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | sudo gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
+          sudo apt-get update
+          sudo apt-get install -y clickhouse-client
+
+      - name: Set customer ID and export date from input
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "CUSTOMER_ID=${{ github.event.inputs.customer_id }}" >> $GITHUB_ENV
+            if [ -n "${{ github.event.inputs.export_date }}" ]; then
+              echo "EXPORT_DATE=${{ github.event.inputs.export_date }}" >> $GITHUB_ENV
+            fi
+          elif [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            echo "CUSTOMER_ID=${{ github.event.client_payload.customer_id }}" >> $GITHUB_ENV
+            if [ -n "${{ github.event.client_payload.export_date }}" ]; then
+              echo "EXPORT_DATE=${{ github.event.client_payload.export_date }}" >> $GITHUB_ENV
+            fi
+          fi
+
+      - name: Validate customer ID
+        run: |
+          if [ -z "$CUSTOMER_ID" ]; then
+            echo "Error: CUSTOMER_ID is not set"
+            exit 1
+          fi
+          echo "Exporting data for customer: $CUSTOMER_ID"
+
+      - name: Make script executable
+        run: chmod +x ./scripts/export_to_s3.sh
+
+      - name: Run export
+        run: ./scripts/export_to_s3.sh
+        env:
+          CUSTOMER_ID: ${{ env.CUSTOMER_ID }}
+          EXPORT_DATE: ${{ env.EXPORT_DATE }}
+          NAMED_COLLECTION: aws_production_s3
+          TABLE_NAME: conversations
+          EXPORT_PATH: exports
+
+      - name: Export summary
+        if: success()
+        run: |
+          echo "### Export Complete! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Customer ID:** ${{ env.CUSTOMER_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+
