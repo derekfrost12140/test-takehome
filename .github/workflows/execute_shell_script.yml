@@ -25,13 +25,14 @@ env:
   CLICKHOUSE_PORT: ${{ secrets.CLICKHOUSE_PORT }}
   CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
   CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
-  CUSTOMER_ID: ${{ vars.CUSTOMER_ID }}
+  CUSTOMER_ID: ${{ vars.CUSTOMER_ID || secrets.CUSTOMER_ID }}
   EXPORT_DATE: ${{ vars.EXPORT_DATE }}
 
 jobs:
   export:
     runs-on: ubuntu-latest
-    
+    environment: production
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,7 +49,7 @@ jobs:
       - name: Validate customer ID
         run: |
           if [ -z "$CUSTOMER_ID" ]; then
-            echo "Error: CUSTOMER_ID is not set"
+            echo "::error::CUSTOMER_ID is not set. Add it as a repository Variable (Settings → Secrets and variables → Actions → Variables) or Secret named CUSTOMER_ID."
             exit 1
           fi
           echo "Exporting data for customer: $CUSTOMER_ID"
