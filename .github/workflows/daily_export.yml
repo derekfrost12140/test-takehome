@@ -3,8 +3,8 @@ name: Daily Export to S3
 on:
   
  schedule:
-    # # # Runs daily at 1:20 PM CST (19:20 UTC)
-    - cron: '20 6 * * *'
+    
+    - cron: '38 7 * * *'
 
 env:
   CLICKHOUSE_HOST: ${{ secrets.CLICKHOUSE_HOST }}
