@@ -1,4 +1,4 @@
-name: Export Customer Data to S3 hello
+name: Export Customer Data to S3
 
 on:
   push:
