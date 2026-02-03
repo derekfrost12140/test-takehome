@@ -1,6 +1,10 @@
 name: Daily Export to S3
 
 on:
+  push:
+    branches:
+      - Github-action
+
   schedule:
     # # # Runs daily at 1:20 PM CST (19:20 UTC)
     - cron: '25 14 * * *'
