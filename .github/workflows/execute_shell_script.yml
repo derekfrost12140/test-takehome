@@ -1,10 +1,6 @@
 name: Export Customer Data to S3
 
 on:
-  push:
-    branches:
-      - Github-action
-
   workflow_dispatch:
     inputs:
       environment:
