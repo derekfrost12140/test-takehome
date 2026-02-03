@@ -92,7 +92,7 @@ jobs:
       - name: Export summary
         if: success()
         run: |
-          echo "### Export Complete! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "### Export Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Customer ID:** ${{ env.CUSTOMER_ID }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY

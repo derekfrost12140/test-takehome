@@ -58,7 +58,7 @@ jobs:
       - name: Export summary
         if: success()
         run: |
-          echo "### Daily Export Complete :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "### Daily Export Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Customer ID:** ${{ env.CUSTOMER_ID }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Export date:** ${{ env.EXPORT_DATE || 'yesterday' }}" >> $GITHUB_STEP_SUMMARY
