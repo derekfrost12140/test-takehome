@@ -7,14 +7,6 @@ on:
 
   workflow_dispatch:
     inputs:
-      customer_id:
-        description: 'Customer ID to export'
-        required: true
-        type: string
-      export_date:
-        description: 'Export date (YYYY-MM-DD). Omit to use yesterday.'
-        required: false
-        type: string
       environment:
         description: 'Environment to run against'
         required: true
@@ -33,6 +25,8 @@ env:
   CLICKHOUSE_PORT: ${{ secrets.CLICKHOUSE_PORT }}
   CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
   CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
+  CUSTOMER_ID: ${{ vars.CUSTOMER_ID }}
+  EXPORT_DATE: ${{ vars.EXPORT_DATE }}
 
 jobs:
   export:
@@ -50,22 +44,6 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
           sudo apt-get update
           sudo apt-get install -y clickhouse-client
-
-      - name: Set customer ID and export date from input
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "CUSTOMER_ID=${{ github.event.inputs.customer_id }}" >> $GITHUB_ENV
-            if [ -n "${{ github.event.inputs.export_date }}" ]; then
-              echo "EXPORT_DATE=${{ github.event.inputs.export_date }}" >> $GITHUB_ENV
-            fi
-          elif [ "${{ github.event_name }}" == "repository_dispatch" ]; then
-            echo "CUSTOMER_ID=${{ github.event.client_payload.customer_id }}" >> $GITHUB_ENV
-            if [ -n "${{ github.event.client_payload.export_date }}" ]; then
-              echo "EXPORT_DATE=${{ github.event.client_payload.export_date }}" >> $GITHUB_ENV
-            fi
-          elif [ "${{ github.event_name }}" == "push" ]; then
-            echo "CUSTOMER_ID=${{ secrets.DEFAULT_CUSTOMER_ID }}" >> $GITHUB_ENV
-          fi
 
       - name: Validate customer ID
         run: |
