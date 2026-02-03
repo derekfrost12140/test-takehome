@@ -10,10 +10,13 @@ env:
   CLICKHOUSE_PORT: ${{ secrets.CLICKHOUSE_PORT }}
   CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
   CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
+  CUSTOMER_ID: ${{ vars.CUSTOMER_ID || secrets.CUSTOMER_ID }}
+  EXPORT_DATE: ${{ vars.EXPORT_DATE }}
 
 jobs:
   export:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout repository
@@ -28,19 +31,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clickhouse-client
 
-      - name: Set customer ID and export date for scheduled run
-        run: |
-          echo "CUSTOMER_ID=${{ vars.DAILY_EXPORT_CUSTOMER_ID }}" >> $GITHUB_ENV
-          # Export date = yesterday (YYYY-MM-DD); script uses this when set
-          echo "EXPORT_DATE=$(date -u -d 'yesterday' +%Y-%m-%d 2>/dev/null || date -u -v-1d +%Y-%m-%d)" >> $GITHUB_ENV
-
       - name: Validate customer ID
         run: |
           if [ -z "$CUSTOMER_ID" ]; then
-            echo "Error: DAILY_EXPORT_CUSTOMER_ID is not set. Add it in Settings → Secrets and variables → Actions → Variables."
+            echo "::error::CUSTOMER_ID is not set. Add it as a repository Variable (Settings → Secrets and variables → Actions → Variables) or Secret named CUSTOMER_ID."
             exit 1
           fi
-          echo "Daily export for customer: $CUSTOMER_ID (date: $EXPORT_DATE)"
+          echo "Daily export for customer: $CUSTOMER_ID (date: ${EXPORT_DATE:-yesterday})"
 
       - name: Make script executable
         run: chmod +x ./scripts/export_to_s3.sh
@@ -50,8 +47,12 @@ jobs:
         env:
           CUSTOMER_ID: ${{ env.CUSTOMER_ID }}
           EXPORT_DATE: ${{ env.EXPORT_DATE }}
+          CLICKHOUSE_SECURE: "1"
           NAMED_COLLECTION: aws_production_s3
           EXPORT_PATH: exports
+          S3_URL: ${{ secrets.S3_URL }}
+          S3_KEY: ${{ secrets.S3_KEY }}
+          S3_ACCESS: ${{ secrets.S3_ACCESS }}
 
       - name: Export summary
         if: success()
@@ -59,5 +60,5 @@ jobs:
           echo "### Daily Export Complete :rocket:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Customer ID:** ${{ env.CUSTOMER_ID }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Export date:** ${{ env.EXPORT_DATE }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Export date:** ${{ env.EXPORT_DATE || 'yesterday' }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
