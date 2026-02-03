@@ -53,3 +53,36 @@ act workflow_dispatch -e event.json --secret-file .secrets
 ```
 
 `event.json` includes `inputs.customer_id` and `inputs.export_date: "2026-02-01"`. Passing it with **`-e event.json`** makes act set `github.event.inputs` so the workflow gets CUSTOMER_ID and EXPORT_DATE. Using `--input event.json` would treat the file as key=value inputs and leave CUSTOMER_ID empty.
+
+---
+
+## Testing daily_export.yml
+
+**Option 1 — From GitHub (easiest)**  
+The workflow has `workflow_dispatch`, so you can run it without waiting for the cron:
+
+1. Push your branch and open the repo on GitHub.
+2. Go to **Actions** → **Daily Export to S3**.
+3. Click **Run workflow**, choose the branch, then **Run workflow**.
+
+It uses the **production** environment (variables and secrets). Ensure `CUSTOMER_ID` is set there; `EXPORT_DATE` is optional (script uses yesterday if empty).
+
+**Option 2 — Locally with act**  
+Run the same workflow locally (e.g. against Docker ClickHouse):
+
+1. Start ClickHouse: `docker compose up -d clickhouse`
+2. Create `.secrets` from `.secrets.example` with `CLICKHOUSE_HOST=host.docker.internal` and add `CUSTOMER_ID`, `S3_URL`, `S3_KEY`, `S3_ACCESS` if testing full export.
+3. Run the daily export workflow by triggering the `schedule` event (act will run the workflow that listens to it):
+
+   ```bash
+   act schedule --secret-file .secrets -W .github/workflows/daily_export.yml
+   ```
+
+   Or list workflows and run by job name:
+
+   ```bash
+   act -l
+   act -W .github/workflows/daily_export.yml -j export --secret-file .secrets
+   ```
+
+4. If your seed data uses a specific date, set `EXPORT_DATE` in `.secrets` (e.g. `EXPORT_DATE=2024-06-01`) so the query returns rows.

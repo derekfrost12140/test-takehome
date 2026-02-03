@@ -1,10 +1,10 @@
 name: Daily Export to S3
 
 on:
-  
- schedule:
-    
-    - cron: '38 7 * * *'
+  workflow_dispatch: {}   # Allows "Run workflow" in Actions tab for testing
+  schedule:
+    # Runs daily at 14:25 UTC
+    - cron: '25 14 * * *'
 
 env:
   CLICKHOUSE_HOST: ${{ secrets.CLICKHOUSE_HOST }}
