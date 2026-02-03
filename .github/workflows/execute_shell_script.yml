@@ -1,6 +1,10 @@
 name: Export Customer Data to S3 hello
 
 on:
+  push:
+    branches:
+      - Github-action
+
   workflow_dispatch:
     inputs:
       customer_id:
@@ -59,6 +63,8 @@ jobs:
             if [ -n "${{ github.event.client_payload.export_date }}" ]; then
               echo "EXPORT_DATE=${{ github.event.client_payload.export_date }}" >> $GITHUB_ENV
             fi
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            echo "CUSTOMER_ID=${{ secrets.DEFAULT_CUSTOMER_ID }}" >> $GITHUB_ENV
           fi
 
       - name: Validate customer ID
@@ -80,6 +86,9 @@ jobs:
           NAMED_COLLECTION: aws_production_s3
           TABLE_NAME: conversations
           EXPORT_PATH: exports
+          S3_URL: ${{ secrets.S3_URL }}
+          S3_KEY: ${{ secrets.S3_KEY }}
+          S3_ACCESS: ${{ secrets.S3_ACCESS }}
 
       - name: Export summary
         if: success()
