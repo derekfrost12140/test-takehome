@@ -2,7 +2,15 @@ name: Export Customer Data to S3
 
 on:
   workflow_dispatch:
-    inputs:
+  inputs:
+      customer_id:
+        description: 'Customer ID to export'
+        required: true
+        type: string
+      export_date:
+        description: 'Export date (YYYY-MM-DD). Omit to use yesterday.'
+        required: false
+        type: string
       environment:
         description: 'Environment to run against'
         required: true
