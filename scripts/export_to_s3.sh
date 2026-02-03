@@ -14,6 +14,8 @@ if [ -z "$CLICKHOUSE_PASSWORD" ]; then echo "Error: CLICKHOUSE_PASSWORD is requi
 # Defaults
 CLICKHOUSE_HOST="${CLICKHOUSE_HOST:-localhost}"
 CLICKHOUSE_PORT="${CLICKHOUSE_PORT:-9000}"
+# Use --secure for ClickHouse Cloud (port 9440). Set to 1 when using ClickHouse Cloud.
+CLICKHOUSE_SECURE="${CLICKHOUSE_SECURE:-}"
 NAMED_COLLECTION="${NAMED_COLLECTION:-aws_production_s3}"
 EXPORT_PATH="${EXPORT_PATH:-exports}"
 EXPORT_DATE="${EXPORT_DATE:-}"
@@ -55,13 +57,20 @@ echo "SELECT agent_id, toDate(call_start) AS report_date, count() AS total_calls
 echo "---------------------------------------------"
 echo "============================================="
 
+# Build clickhouse-client args (--secure required for ClickHouse Cloud on port 9440)
+CLICKHOUSE_ARGS=(
+  --host "${CLICKHOUSE_HOST}"
+  --port "${CLICKHOUSE_PORT}"
+  --user "${CLICKHOUSE_USER}"
+  --password "${CLICKHOUSE_PASSWORD}"
+  --query "${QUERY}"
+)
+if [ -n "${CLICKHOUSE_SECURE}" ]; then
+  CLICKHOUSE_ARGS+=(--secure)
+fi
+
 # Execute the query
-clickhouse-client \
-    --host "${CLICKHOUSE_HOST}" \
-    --port "${CLICKHOUSE_PORT}" \
-    --user "${CLICKHOUSE_USER}" \
-    --password "${CLICKHOUSE_PASSWORD}" \
-    --query "${QUERY}"
+clickhouse-client "${CLICKHOUSE_ARGS[@]}"
 
 echo "============================================="
 echo "✅ Export completed successfully!"

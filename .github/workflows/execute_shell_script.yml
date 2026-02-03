@@ -62,6 +62,7 @@ jobs:
         env:
           CUSTOMER_ID: ${{ env.CUSTOMER_ID }}
           EXPORT_DATE: ${{ env.EXPORT_DATE }}
+          CLICKHOUSE_SECURE: "1"
           NAMED_COLLECTION: aws_production_s3
           TABLE_NAME: conversations
           EXPORT_PATH: exports
