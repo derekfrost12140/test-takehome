@@ -4,7 +4,7 @@ on:
      
   schedule:
     
-    - cron: '51 3 * * *'
+    - cron: '30 4 * * *'
 
 env:
   CLICKHOUSE_HOST: ${{ secrets.CLICKHOUSE_HOST }}
